@@ -74,7 +74,7 @@ export default class App extends Component<Props, State> {
           <Button title='Logout' onPress={e => this.state.client.auth.logout().then(user => this.setState({ user: undefined }))} />
         </>
         : <>
-          <Form onSubmit={async values => {
+          <Form cta='Login' onSubmit={async values => {
             // Alert.alert(JSON.stringify(values))
             const user = await this.state.client.auth.loginWithCredential(new UserPasswordCredential(values.email, values.password))
             this.setState({
@@ -93,9 +93,10 @@ export default class App extends Component<Props, State> {
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
+    paddingBottom: 40
   },
   welcome: {
     fontSize: 20,

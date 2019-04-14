@@ -11,9 +11,9 @@ import { styles } from '../App'
 
 import { StitchContext } from '../clients/stitch'
 
-import { GPSMap } from '../components/gps_map'
+import { Map } from '../components/map'
 
-interface GPSDocument {
+export interface GPSDocument {
   _id: ObjectId
   name: string
   coordinates: {
@@ -47,9 +47,9 @@ export default class GPSs extends Component<Props, State> {
   
   async componentDidMount() {
     this.fetchCollection()
-    // this.heartbeat = setInterval(_ => {
-    //   this.state.map && this.fetchCollection()
-    // }, 2000)
+    this.heartbeat = setInterval(_ => {
+      this.state.map && this.fetchCollection()
+    }, 2000)
   }
 
   componentWillUnmount() {
@@ -75,9 +75,14 @@ export default class GPSs extends Component<Props, State> {
           renderItem={({ item })=> <Text>{item.name}</Text>} />} */}
         {this.state.gpss && <>
           {this.state.gpss.map(gps => <TouchableHighlight key={gps._id.toHexString()}
-          onPress={_ => this.setState({ map: gps.coordinates ? gps._id : true })}>
+            onPress={_ => this.setState({ map: gps.coordinates ? gps._id : true })}>
             <Text>{gps.name}</Text>
           </TouchableHighlight>)}
+
+          <TouchableHighlight
+            onPress={_ => this.setState({ map: true })}>
+            <Text>Show Map</Text>
+          </TouchableHighlight>
         
           <Modal
             animationType='slide'
@@ -85,11 +90,7 @@ export default class GPSs extends Component<Props, State> {
             visible={!!this.state.map}>
             <View style={styles.container}>
               
-              <GPSMap find={typeof this.state.map !== 'boolean' ? this.state.map.toHexString() : undefined} markers={this.state.gpss.filter(gps => gps.coordinates).map(gps => ({
-                id: gps._id.toHexString(),
-                name: gps.name,
-                coordinates: gps.coordinates
-              }))} />
+              <Map find={typeof this.state.map !== 'boolean' ? this.state.map.toHexString() : undefined} markers={this.state.gpss.filter(gps => gps.coordinates)} />
 
               <TouchableHighlight
                 onPress={() => {

@@ -1,7 +1,7 @@
 
 
 import React from 'react'
-import { Button, Text } from 'react-native';
+import { Button, Text, Alert } from 'react-native';
 
 
 export const FormContext = React.createContext({
@@ -31,8 +31,7 @@ export class Form extends React.Component<Props, State> {
     }
   }
 
-  async onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  onSubmit() {
     this.setState({
       waiting: true,
       error: undefined
@@ -67,7 +66,9 @@ export class Form extends React.Component<Props, State> {
         {this.props.children}
       </FormContext.Provider>
       {this.state.error && <Text>{this.state.error}</Text>}
-      <Button onPress={e => this.props.onSubmit(this.state.values)} disabled={this.state.waiting} title={this.state.waiting ? 'One moment...' : this.props.cta || 'Save'} />
+      {this.state.waiting
+        ? <Button onPress={e => null} disabled title={'One moment...'} />
+        : <Button onPress={e => this.onSubmit()} title={this.props.cta || 'Save'} />}
     </>
   }
 }
