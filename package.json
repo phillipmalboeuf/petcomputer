@@ -12,6 +12,7 @@
     "mongodb-stitch-react-native-sdk": "^4.3.2",
     "react": "16.8.3",
     "react-native": "0.59.3",
+    "react-native-maps": "^0.24.0",
     "react-router-native": "^5.0.0"
   },
   "devDependencies": {

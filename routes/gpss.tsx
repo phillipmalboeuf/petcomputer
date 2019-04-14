@@ -11,9 +11,15 @@ import { styles } from '../App'
 
 import { StitchContext } from '../clients/stitch'
 
+import { GPSMap } from '../components/gps_map'
+
 interface GPSDocument {
   _id: ObjectId
   name: string
+  coordinates: {
+    latitude: number
+    longitude: number
+  }
 }
 
 interface Props extends RouteComponentProps {}
@@ -27,6 +33,8 @@ export default class GPSs extends Component<Props, State> {
 
   static contextType = StitchContext
   context!: React.ContextType<typeof StitchContext>
+
+  private heartbeat: NodeJS.Timeout
   
   constructor(props: Props) {
     super(props)
@@ -38,9 +46,23 @@ export default class GPSs extends Component<Props, State> {
   }
   
   async componentDidMount() {
-    this.setState({
-      gpss: await this.context.db.collection<GPSDocument>('gpss').find().toArray()
-    })
+    this.fetchCollection()
+    // this.heartbeat = setInterval(_ => {
+    //   this.state.map && this.fetchCollection()
+    // }, 2000)
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.heartbeat)
+  }
+
+  public async fetchCollection() {
+    const collection = this.context.db.collection<GPSDocument>('gpss')
+    const gpss = await collection.find().toArray()
+    
+    this.setState({ gpss })
+
+    // collection.watch(gpss.map(gps => gps._id))
   }
 
   render() {
@@ -51,33 +73,41 @@ export default class GPSs extends Component<Props, State> {
         {/* {this.state.gpss && <FlatList data={this.state.gpss}
           keyExtractor={(item, index) => item._id.toHexString()}
           renderItem={({ item })=> <Text>{item.name}</Text>} />} */}
-        {this.state.gpss && this.state.gpss.map(gps => <TouchableHighlight key={gps._id.toHexString()}
-          onPress={_ => this.setState({ map: gps._id })}>
-          <Text>{gps.name}</Text>
-        </TouchableHighlight>)}
+        {this.state.gpss && <>
+          {this.state.gpss.map(gps => <TouchableHighlight key={gps._id.toHexString()}
+          onPress={_ => this.setState({ map: gps.coordinates ? gps._id : true })}>
+            <Text>{gps.name}</Text>
+          </TouchableHighlight>)}
+        
+          <Modal
+            animationType='slide'
+            transparent={false}
+            visible={!!this.state.map}>
+            <View style={styles.container}>
+              
+              <GPSMap find={typeof this.state.map !== 'boolean' ? this.state.map.toHexString() : undefined} markers={this.state.gpss.filter(gps => gps.coordinates).map(gps => ({
+                id: gps._id.toHexString(),
+                name: gps.name,
+                coordinates: gps.coordinates
+              }))} />
 
-        <Modal
-          animationType='slide'
-          transparent={false}
-          visible={!!this.state.map}>
-          <View style={styles.container}>
-            
+              <TouchableHighlight
+                onPress={() => {
+                  this.setState({ map: false })
+                }}>
+                <Text>Hide Map</Text>
+              </TouchableHighlight>
+            </View>
+          </Modal>
+        </>}
 
-
-            <TouchableHighlight
-              onPress={() => {
-                this.setState({ map: false })
-              }}>
-              <Text>Hide Map</Text>
-            </TouchableHighlight>
-          </View>
-        </Modal>
+        
 
         <Modal
           animationType='slide'
           transparent={true}
           visible={this.state.inserting}>
-          <View style={styles.container}>
+          <View>
             <Form onSubmit={values => {
               return this.context.db.collection('gpss').insertOne({
                 ...values,
