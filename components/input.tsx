@@ -3,6 +3,9 @@ import React from 'react'
 import { FormContext } from './form'
 import { TextInput, KeyboardTypeOptions, TextInputProps, Text } from 'react-native'
 
+import { rythm, colors } from '../styles/settings'
+
+
 interface Props {
   name: string,
   placeholder?: string,
@@ -19,8 +22,18 @@ interface Props {
 export const Input: React.SFC<Props> = (props) => {
   return <FormContext.Consumer>
     {(context) => <>
-      {props.label && <Text key="label">{props.label}{props.optional ? " (Optional)" : "" }</Text>}
-      <TextInput onChangeText={text => context.onChange(props.name, text)}
+      {props.label && <Text style={{
+          marginBottom: rythm/2
+        }}>{props.label}{props.optional ? ' (Optional)' : '' }</Text>}
+      <TextInput
+        style={{
+          fontSize: rythm,
+          padding: rythm/2,
+          marginBottom: rythm,
+          borderBottomColor: colors.black,
+          borderBottomWidth: 2
+        }}
+        onChangeText={text => context.onChange(props.name, text)}
         defaultValue={props.value}
         placeholder={props.placeholder}
         autoFocus={props.autoFocus}

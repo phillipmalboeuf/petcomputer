@@ -1,7 +1,9 @@
 
 
 import React from 'react'
-import { Button, Text, Alert } from 'react-native';
+import { Text, Alert } from 'react-native'
+
+import { Button } from './button'
 
 
 export const FormContext = React.createContext({
@@ -67,8 +69,8 @@ export class Form extends React.Component<Props, State> {
       </FormContext.Provider>
       {this.state.error && <Text>{this.state.error}</Text>}
       {this.state.waiting
-        ? <Button onPress={e => null} disabled title={'One moment...'} />
-        : <Button onPress={e => this.onSubmit()} title={this.props.cta || 'Save'} />}
+        ? <Button onPress={e => null} disabled label={'One moment...'} />
+        : <Button onPress={e => this.onSubmit()} label={this.props.cta || 'Save'} />}
     </>
   }
 }

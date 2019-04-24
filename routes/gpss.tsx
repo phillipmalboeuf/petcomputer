@@ -1,25 +1,26 @@
 
 import React, { Component } from 'react'
-import { Platform, StyleSheet, Text, View, Button, Alert, TouchableHighlight, Modal, FlatList } from 'react-native'
+import { Platform, StyleSheet, Text, View, Alert, TouchableHighlight, Modal, FlatList } from 'react-native'
 import { NativeRouter, Route, BackButton, Link, RouteComponentProps } from 'react-router-native'
 import { Stitch, StitchUser, AnonymousCredential, StitchAppClient, UserPasswordCredential } from 'mongodb-stitch-react-native-sdk'
 import { ObjectId } from 'bson'
 
+import { StitchContext } from '../clients/stitch'
+import { rythm } from '../styles/settings'
+
 import { Form } from '../components/form'
 import { Input } from '../components/input'
-import { styles } from '../App'
-
-import { StitchContext } from '../clients/stitch'
-
 import { Map } from '../components/map'
+import { Middle } from '../components/layout'
+import { Button } from '../components/button'
+
 
 export interface GPSDocument {
   _id: ObjectId
   name: string
-  coordinates: {
-    latitude: number
-    longitude: number
-  }
+  device_id: string
+  latitude: number
+  longitude: number
 }
 
 interface Props extends RouteComponentProps {}
@@ -75,7 +76,7 @@ export default class GPSs extends Component<Props, State> {
           renderItem={({ item })=> <Text>{item.name}</Text>} />} */}
         {this.state.gpss && <>
           {this.state.gpss.map(gps => <TouchableHighlight key={gps._id.toHexString()}
-            onPress={_ => this.setState({ map: gps.coordinates ? gps._id : true })}>
+            onPress={_ => this.setState({ map: gps.device_id ? gps._id : true })}>
             <Text>{gps.name}</Text>
           </TouchableHighlight>)}
 
@@ -88,16 +89,14 @@ export default class GPSs extends Component<Props, State> {
             animationType='slide'
             transparent={false}
             visible={!!this.state.map}>
-            <View style={styles.container}>
+            <View style={{ flex: 1, justifyContent: 'flex-end', paddingBottom: rythm*2 }}>
               
-              <Map find={typeof this.state.map !== 'boolean' ? this.state.map.toHexString() : undefined} markers={this.state.gpss.filter(gps => gps.coordinates)} />
+              <Map find={typeof this.state.map !== 'boolean' ? this.state.map.toHexString() : undefined} markers={this.state.gpss.filter(gps => gps.device_id)} />
 
-              <TouchableHighlight
+              <Button
                 onPress={() => {
                   this.setState({ map: false })
-                }}>
-                <Text>Hide Map</Text>
-              </TouchableHighlight>
+                }} label='Hide Map' />
             </View>
           </Modal>
         </>}
@@ -106,7 +105,6 @@ export default class GPSs extends Component<Props, State> {
 
         <Modal
           animationType='slide'
-          transparent={true}
           visible={this.state.inserting}>
           <View>
             <Form onSubmit={values => {

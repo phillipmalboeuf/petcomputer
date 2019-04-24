@@ -1,15 +1,20 @@
 
 import React, { Component } from 'react'
-import { Platform, StyleSheet, Text, View, Button, Alert } from 'react-native'
+import { Platform, StyleSheet, Text, View, Alert, Image } from 'react-native'
 import { NativeRouter, Route, BackButton, Link, Switch } from 'react-router-native'
 import { Stitch, StitchUser, StitchAppClient, UserPasswordCredential, RemoteMongoDatabase } from 'mongodb-stitch-react-native-sdk'
 
 import { db, StitchContext, stitch } from './clients/stitch'
 
+import GPSs from './routes/gpss'
+
 import { Form } from './components/form'
 import { Input } from './components/input'
+import { Button } from './components/button'
+import { Title } from './components/text'
+import { Padded, Middle } from './components/layout'
 
-import GPSs from './routes/gpss'
+import { rythm } from './styles/settings'
 
 
 interface Props {}
@@ -50,11 +55,9 @@ export default class App extends Component<Props, State> {
       user: this.state.user,
       db: this.state.db
     }}>
-      <View style={styles.container}>
-        <Text style={styles.welcome}>pet.computer</Text>
+      <>
         {this.state.user 
-        ? <>
-          <Text>Hi {this.state.user.id}</Text>
+        ? <Middle>
           <NativeRouter>
             <BackButton>
               <Link to='/collars'><Text>Collars</Text></Link>
@@ -71,41 +74,31 @@ export default class App extends Component<Props, State> {
 
             </BackButton>
           </NativeRouter>
-          <Button title='Logout' onPress={e => this.state.client.auth.logout().then(user => this.setState({ user: undefined }))} />
-        </>
-        : <>
-          <Form cta='Login' onSubmit={async values => {
-            // Alert.alert(JSON.stringify(values))
-            const user = await this.state.client.auth.loginWithCredential(new UserPasswordCredential(values.email, values.password))
-            this.setState({
-              user
-            })
-          }}>
-            <Input type='email' name='email' label='Email address' placeholder='your.address@gmail.com' />
-            <Input type='newpassword' name='password' label='New password' placeholder='********' />
-          </Form>
-        </>}
-      </View>
+
+          <Padded>
+            {/* <Text>Hi {this.state.user.id}</Text> */}
+            <Button label='Logout' onPress={e => this.state.client.auth.logout().then(user => this.setState({ user: undefined }))} />
+          </Padded>
+        </Middle>
+        : <Middle>
+          <Padded>
+            {/* <Title>pet.computer</Title> */}
+            <Image style={{ width: 'auto', resizeMode: 'contain', marginHorizontal: rythm*3 }} source={require('./images/logo.png')} />
+          </Padded>
+          <Padded>
+            <Form cta='Login' onSubmit={async values => {
+              // Alert.alert(JSON.stringify(values))
+              const user = await this.state.client.auth.loginWithCredential(new UserPasswordCredential(values.email, values.password))
+              this.setState({
+                user
+              })
+            }}>
+              <Input type='email' name='email' label='Email address' placeholder='your.address@gmail.com' />
+              <Input type='newpassword' name='password' label='Password' placeholder='********' />
+            </Form>
+          </Padded>
+        </Middle>}
+      </>
     </StitchContext.Provider>
   }
 }
-
-export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-    paddingBottom: 40
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-})

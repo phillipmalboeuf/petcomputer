@@ -2,9 +2,11 @@
 
 import React from 'react'
 import { Platform, Button, Text, Alert, View, StyleSheet, Animated } from 'react-native'
-import MapView, { Marker, Circle, UrlTile } from 'react-native-maps'
+import MapView, { Marker, Circle, UrlTile, MarkerAnimated } from 'react-native-maps'
+import { Spring, config } from 'react-spring/renderprops-native'
 
 import { GPSDocument } from '../routes/gpss' 
+
 
 interface Props {
   find?: string,
@@ -25,11 +27,12 @@ export class Map extends React.Component<Props, State> {
 
   public render() {
     return <View style={styles.container}>
-      <MapView ref={element => this.map_view = element}
-        style={styles.map} showsUserLocation showsMyLocationButton showsTraffic={false} mapType='mutedStandard'
+      <MapView ref={element => this.map_view = element} style={styles.map}
+        maxZoomLevel={19}
+        showsUserLocation showsMyLocationButton showsTraffic={false}
         onMapReady={()=> { this.map_view.fitToSuppliedMarkers(this.props.find ? [this.props.find] : this.props.markers.map(marker => marker._id.toHexString()), { animated: false }) }}>
 
-        {Platform.OS === 'android' && <UrlTile urlTemplate='https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png' />}
+        {/* {Platform.OS === 'android' && <UrlTile urlTemplate='https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png' />} */}
 
         {this.props.markers && this.props.markers.map(marker => <GPSMarker key={marker._id.toHexString()}
           marker={marker} />)}
@@ -43,41 +46,42 @@ interface GPSMarkerProps {
   marker: GPSDocument
 }
 interface GPSMarkerState {
-  radius: Animated.Value
 }
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle)
-
 export class GPSMarker extends React.Component<GPSMarkerProps, GPSMarkerState> {
+
+  private marker: MarkerAnimated
 
   constructor(props: GPSMarkerProps) {
     super(props)
     this.state = {
-      radius: new Animated.Value(0)
     }
   }
 
   componentDidUpdate() {
-    Animated.timing(this.state.radius, {
-      toValue: 133,
-      duration: 666
-    }).start(_ => {
-      this.state.radius.setValue(0)
-    })
+    
+  }
+
+  static getDerivedStateFromProps(props: GPSMarkerProps, state: GPSMarkerState) {
+    return state
   }
 
   public render() {
     const { marker } = this.props
-    const { radius } = this.state
 
-    return <>
-      <AnimatedCircle center={marker.coordinates} radius={radius} strokeColor={'rgba(0, 0, 0, 0.2)'} />
-      <Circle center={marker.coordinates} radius={4} fillColor={'rgba(0, 0, 0, 0.2)'} />
-      <Circle center={marker.coordinates} radius={1} fillColor={'black'} />
-      <Marker identifier={marker._id.toHexString()} coordinate={marker.coordinates} centerOffset={{ x: 0, y: -20 }}>
+    return !!marker.latitude && !!marker.longitude && <Spring reset config={config.molasses}
+      to={{ radius: 133, latitude: marker.latitude, longitude: marker.longitude }}
+      from={{ radius: 0 }}>
+      {({ radius, latitude, longitude })=> <>
+      <Circle center={{ latitude, longitude }} radius={radius} strokeColor={`rgba(0, 0, 0, ${1 - (radius/133)})`} />
+      <Circle center={{ latitude, longitude }} radius={4} fillColor={'rgba(0, 0, 0, 0.2)'} />
+      <Circle center={{ latitude, longitude }} radius={1} fillColor={'black'} />
+      <MarkerAnimated ref={marker => this.marker = marker} identifier={marker._id.toHexString()} coordinate={{ latitude, longitude }} centerOffset={{ x: 0, y: -20 }} anchor={{ x: 0.5, y: 1 }}>
         <Text>{marker.name}</Text>
-      </Marker>
-    </>
+        <Text>{latitude} {longitude}</Text>
+      </MarkerAnimated>
+      </>}
+    </Spring>
   }
 }
 
