@@ -7,7 +7,9 @@ export const db = (client: StitchAppClient) => client.getServiceClient(RemoteMon
 export const StitchContext = React.createContext<{
   user: StitchUser,
   db: RemoteMongoDatabase
+  logout: ()=> void
 }>({
   user: undefined,
-  db: undefined
+  db: undefined,
+  logout: undefined
 })

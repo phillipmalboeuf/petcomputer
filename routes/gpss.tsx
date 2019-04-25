@@ -11,8 +11,10 @@ import { rythm } from '../styles/settings'
 import { Form } from '../components/form'
 import { Input } from '../components/input'
 import { Map } from '../components/map'
-import { Middle } from '../components/layout'
+import { Middle, BottomRight, Marginalized, Full, Padded } from '../components/layout'
 import { Button } from '../components/button'
+import { List } from '../components/list'
+import { Title } from '../components/text'
 
 
 export interface GPSDocument {
@@ -67,29 +69,20 @@ export default class GPSs extends Component<Props, State> {
   }
 
   render() {
-    return (
-      <View>
-        <Text>GPSs</Text>
-
-        {/* {this.state.gpss && <FlatList data={this.state.gpss}
-          keyExtractor={(item, index) => item._id.toHexString()}
-          renderItem={({ item })=> <Text>{item.name}</Text>} />} */}
+    return (<>
+      <Full>
         {this.state.gpss && <>
-          {this.state.gpss.map(gps => <TouchableHighlight key={gps._id.toHexString()}
-            onPress={_ => this.setState({ map: gps.device_id ? gps._id : true })}>
-            <Text>{gps.name}</Text>
-          </TouchableHighlight>)}
 
-          <TouchableHighlight
-            onPress={_ => this.setState({ map: true })}>
-            <Text>Show Map</Text>
-          </TouchableHighlight>
+          <List title='GPSs' items={this.state.gpss.map(gps => ({
+            body: <Text>{gps.name}</Text>,
+            onPress: ()=> this.setState({ map: gps.device_id ? gps._id : true })
+          }))} />
         
           <Modal
             animationType='slide'
             transparent={false}
             visible={!!this.state.map}>
-            <View style={{ flex: 1, justifyContent: 'flex-end', paddingBottom: rythm*2 }}>
+            <View style={{ flex: 1, justifyContent: 'flex-end', padding: rythm*2 }}>
               
               <Map find={typeof this.state.map !== 'boolean' ? this.state.map.toHexString() : undefined} markers={this.state.gpss.filter(gps => gps.device_id)} />
 
@@ -106,37 +99,46 @@ export default class GPSs extends Component<Props, State> {
         <Modal
           animationType='slide'
           visible={this.state.inserting}>
-          <View>
-            <Form onSubmit={values => {
-              return this.context.db.collection('gpss').insertOne({
-                ...values,
-                owner_id: this.context.user.id
-              }).then(result => <Text>
-                Successfully added {values.name}!
-              </Text>)
-            }}>
-              <Text>New GPS</Text>
-              <Input name='name' label='Name' placeholder={`Isaac\'s GPS`} />
-            </Form>
-
-            <TouchableHighlight
-              onPress={() => {
-                this.setState({ inserting: false })
+          <Full>
+            <Padded>
+              <Form onSubmit={values => {
+                return this.context.db.collection('gpss').insertOne({
+                  ...values,
+                  owner_id: this.context.user.id
+                }).then(result => <Text>
+                  Successfully added {values.name}!
+                </Text>)
               }}>
-              <Text>Hide Form</Text>
-            </TouchableHighlight>
-          </View>
+              
+                <Marginalized bottom><Title>New GPS</Title></Marginalized>
+                <Input name='name' label='Name' placeholder={`Isaac\'s GPS`} />
+              </Form>
+            </Padded>
+            <Padded>
+              <Button secondary label='Hide Form'
+                onPress={() => {
+                  this.setState({ inserting: false })
+                }} />
+            </Padded>
+          </Full>
         </Modal>
+      </Full>
+      
+      <BottomRight>
+        <Marginalized bottom>
+          <Button secondary label='New GPS'
+            onPress={() => {
+              this.setState({
+                inserting: true
+              })
+            }} />
+        </Marginalized>
 
-        <TouchableHighlight
+        {this.state.gpss && <Button label='Show Map'
           onPress={() => {
-            this.setState({
-              inserting: true
-            })
-          }}>
-          <Text>New GPS</Text>
-        </TouchableHighlight>
-      </View>
-    )
+            this.setState({ map: true })
+          }} />}
+      </BottomRight>
+    </>)
   }
 }

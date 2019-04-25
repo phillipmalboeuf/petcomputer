@@ -1,20 +1,23 @@
 
 import React, { Component } from 'react'
-import { Platform, StyleSheet, Text, View, Alert, Image } from 'react-native'
-import { NativeRouter, Route, BackButton, Link, Switch } from 'react-router-native'
+import { Platform, StyleSheet, Text, View, Alert, Image, StatusBar } from 'react-native'
+import { NativeRouter, Route, BackButton, Link, Switch, RouteComponentProps } from 'react-router-native'
 import { Stitch, StitchUser, StitchAppClient, UserPasswordCredential, RemoteMongoDatabase } from 'mongodb-stitch-react-native-sdk'
 
 import { db, StitchContext, stitch } from './clients/stitch'
 
 import GPSs from './routes/gpss'
+import Account from './routes/account'
+
+import { rythm } from './styles/settings'
 
 import { Form } from './components/form'
 import { Input } from './components/input'
 import { Button } from './components/button'
 import { Title } from './components/text'
 import { Padded, Middle } from './components/layout'
-
-import { rythm } from './styles/settings'
+import { Nav } from './components/nav'
+import { Header } from './components/header'
 
 
 interface Props {}
@@ -50,39 +53,39 @@ export default class App extends Component<Props, State> {
     })
   }
 
+  public logout() {
+    this.state.client.auth.logout().then(user => this.setState({ user: undefined }))
+  }
+
   render() {
     return <StitchContext.Provider value={{
       user: this.state.user,
-      db: this.state.db
+      db: this.state.db,
+      logout: this.logout.bind(this)
     }}>
       <>
+        <StatusBar barStyle='light-content' />
+
         {this.state.user 
-        ? <Middle>
+        ? <>
           <NativeRouter>
-            <BackButton>
-              <Link to='/collars'><Text>Collars</Text></Link>
-              <Link to='/gpss'><Text>GPSs</Text></Link>
-              <Link to='/doors'><Text>Doors</Text></Link>
-              <Link to='/feeds'><Text>Feeds</Text></Link>
-              
+            <BackButton>              
               <Switch>
+                {/* <Route exact path='/' component={GPSs} /> */}
                 <Route exact path='/collars' />
                 <Route exact path='/gpss' component={GPSs} />
                 <Route exact path='/doors' />
                 <Route exact path='/feeds' />
+                <Route exact path='/account' component={Account} />
               </Switch>
-
+              
+              <Route path='/*' component={Header} />
+              <Route path='/*' component={Nav} />
             </BackButton>
           </NativeRouter>
-
-          <Padded>
-            {/* <Text>Hi {this.state.user.id}</Text> */}
-            <Button label='Logout' onPress={e => this.state.client.auth.logout().then(user => this.setState({ user: undefined }))} />
-          </Padded>
-        </Middle>
+        </>
         : <Middle>
           <Padded>
-            {/* <Title>pet.computer</Title> */}
             <Image style={{ width: 'auto', resizeMode: 'contain', marginHorizontal: rythm*3 }} source={require('./images/logo.png')} />
           </Padded>
           <Padded>
